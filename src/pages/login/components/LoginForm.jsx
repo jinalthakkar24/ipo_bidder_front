@@ -161,7 +161,7 @@ const LoginForm = () => {
       setIsNewUser(!userExists);
 
       // Call the API to request OTP
-      const response = await axios?.post('http://192.168.1.8/api/auth/request-otp', {
+      const response = await axios?.post('http://192.168.1.8:5000/api/auth/request-otp', {
         mobileNumber: formData?.mobile
       });
 
@@ -218,6 +218,9 @@ const LoginForm = () => {
           localStorage.setItem('isNewRegistration', 'true');
         }
         
+        // Dispatch custom event to notify other components about authentication change
+        window.dispatchEvent(new Event('auth-change'));
+        
         navigate('/client-dashboard');
       } else {
         // Invalid mobile format
@@ -237,7 +240,7 @@ const LoginForm = () => {
     
     try {
       // Call the API to resend OTP
-      const response = await axios?.post('http://192.168.1.8/api/auth/request-otp', {
+      const response = await axios?.post('http://192.168.1.8:5000/api/auth/request-otp', {
         mobileNumber: formData?.mobile
       });
 

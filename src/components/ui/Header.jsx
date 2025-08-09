@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
@@ -9,9 +9,30 @@ import AuthDropdown from './AuthDropdown';
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  // Simulate user authentication state - replace with actual auth logic
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
+
+  // Check authentication status from localStorage
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+      setIsLoggedIn(isAuthenticated);
+    };
+
+    // Check on component mount
+    checkAuthStatus();
+
+    // Listen for storage changes (when user logs in/out in another tab)
+    window.addEventListener('storage', checkAuthStatus);
+
+    // Also listen for custom events (when user logs in/out in same tab)
+    window.addEventListener('auth-change', checkAuthStatus);
+
+    return () => {
+      window.removeEventListener('storage', checkAuthStatus);
+      window.removeEventListener('auth-change', checkAuthStatus);
+    };
+  }, []);
 
   const navigationItems = [
     { label: 'IPOs', path: '/ipo-listings', icon: 'TrendingUp' },
@@ -44,8 +65,20 @@ const Header = () => {
   };
 
   const handleLogout = () => {
+    // Clear authentication data from localStorage
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('userMobile');
+    localStorage.removeItem('isNewRegistration');
+    
     setIsLoggedIn(false);
     setIsNotificationOpen(false);
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event('auth-change'));
+    
+    // Redirect to home page
+    window.location.href = '/';
   };
 
   return (
@@ -114,7 +147,6 @@ const Header = () => {
             ) : (
               // Not logged in: Show unified auth dropdown
               <AuthDropdown 
-                isLoggedIn={isLoggedIn}
                 onLogin={handleLogin}
                 onLogout={handleLogout}
                 className="hidden md:block"

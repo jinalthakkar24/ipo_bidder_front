@@ -9,6 +9,27 @@ const LandingPage = () => {
   const [featuredIPOs, setFeaturedIPOs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+      setIsLoggedIn(isAuthenticated);
+    };
+
+    // Check on component mount
+    checkAuthStatus();
+
+    // Listen for storage changes and custom auth events
+    window.addEventListener('storage', checkAuthStatus);
+    window.addEventListener('auth-change', checkAuthStatus);
+
+    return () => {
+      window.removeEventListener('storage', checkAuthStatus);
+      window.removeEventListener('auth-change', checkAuthStatus);
+    };
+  }, []);
 
   // Mock IPO data with GMP information inspired by InvestorGain
   const mockFeaturedIPOs = [
@@ -279,17 +300,31 @@ const LandingPage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
-              <Link to="/login">
-                <Button 
-                  size="xl" 
-                  variant="secondary" 
-                  iconName="TrendingUp" 
-                  iconPosition="left"
-                  className="bg-accent hover:bg-accent/90 text-black font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-                >
-                  Start Investing Now
-                </Button>
-              </Link>
+              {!isLoggedIn ? (
+                <Link to="/login">
+                  <Button 
+                    size="xl" 
+                    variant="secondary" 
+                    iconName="TrendingUp" 
+                    iconPosition="left"
+                    className="bg-accent hover:bg-accent/90 text-black font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                  >
+                    Start Investing Now
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/client-dashboard">
+                  <Button 
+                    size="xl" 
+                    variant="secondary" 
+                    iconName="BarChart3" 
+                    iconPosition="left"
+                    className="bg-accent hover:bg-accent/90 text-black font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                  >
+                    Go to Dashboard
+                  </Button>
+                </Link>
+              )}
               <Link to="/ipo-listings">
                 <Button 
                   size="xl" 
@@ -745,30 +780,32 @@ const LandingPage = () => {
               Get started with just ₹10,000 and access premium IPO opportunities.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
-              <Link to="/login">
-                <Button 
-                  size="xl" 
-                  variant="secondary" 
-                  iconName="UserPlus" 
-                  iconPosition="left"
-                  className="bg-accent hover:bg-accent/90 text-black font-bold shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 px-8 py-4"
-                >
-                  Create Free Account
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button 
-                  size="xl" 
-                  variant="outline" 
-                  className="border-2 border-white text-white hover:bg-white hover:text-primary font-bold shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 px-8 py-4" 
-                  iconName="LogIn" 
-                  iconPosition="left"
-                >
-                  Sign In
-                </Button>
-              </Link>
-            </div>
+            {!isLoggedIn && (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
+                <Link to="/login">
+                  <Button 
+                    size="xl" 
+                    variant="secondary" 
+                    iconName="UserPlus" 
+                    iconPosition="left"
+                    className="bg-accent hover:bg-accent/90 text-black font-bold shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 px-8 py-4"
+                  >
+                    Create Free Account
+                  </Button>
+                </Link>
+                <Link to="/login">
+                  <Button 
+                    size="xl" 
+                    variant="outline" 
+                    className="border-2 border-white text-white hover:bg-white hover:text-primary font-bold shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 px-8 py-4" 
+                    iconName="LogIn" 
+                    iconPosition="left"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+              </div>
+            )}
 
             {/* CTA Benefits */}
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">

@@ -3,10 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
 
-const AuthDropdown = ({ isLoggedIn, onLogin, onLogout, className = '' }) => {
+const AuthDropdown = ({ onLogin, onLogout, className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  // Check authentication status from localStorage
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+      setIsLoggedIn(isAuthenticated);
+    };
+
+    // Check on component mount
+    checkAuthStatus();
+
+    // Listen for storage changes and custom auth events
+    window.addEventListener('storage', checkAuthStatus);
+    window.addEventListener('auth-change', checkAuthStatus);
+
+    return () => {
+      window.removeEventListener('storage', checkAuthStatus);
+      window.removeEventListener('auth-change', checkAuthStatus);
+    };
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
